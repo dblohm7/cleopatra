@@ -638,10 +638,14 @@ function parseRawProfile(requestID, params, rawProfile) {
       //  break;
       case 'm':
         // marker
-        if (!("marker" in extraInfo)) {
-          extraInfo.marker = [];
+        if (sample) {
+          sample.extraInfo.marker = { name: info };
         }
-        extraInfo.marker.push(info);
+        break;
+      case 'D':
+        if (sample.extraInfo.marker) {
+          sample.extraInfo.marker["duration"] = parseFloat(info);
+        }
         break;
       case 's':
         // sample
@@ -665,6 +669,11 @@ function parseRawProfile(requestID, params, rawProfile) {
           if (shouldIncludeARMLRForPC(pcIndex)) {
             sample.frames.splice(-1, 0, indexForSymbol(info));
           }
+        }
+        break;
+      case 'P':
+        if (sample.extraInfo.marker) {
+          sample.extraInfo.marker["payload"] = info;
         }
         break;
       case 't':
@@ -1383,7 +1392,7 @@ function calculateHistogramData(requestID, profileID, showMissedSample, options,
         frames: [ step.frames ],
         height: getHeight(step) / (maxHeight / 100),
         time: step.extraInfo.time,
-        markers: step.extraInfo.marker || [],
+        marker: step.extraInfo.marker,
         color: getStepColor(step)
       };
     });
