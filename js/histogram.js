@@ -236,15 +236,17 @@ var HistogramContainer;
             break;
           }
 
-          slice.push(datum);
-
-          if (datum.markers.length) {
-            markers.push(datum.markers);
+          // Separate marker samples out from regular samples
+          if (datum.marker) {
+            markers.push(datum);
+          } else {
+            slice.push(datum);
           }
         }
 
         if (slice.length !== 0) {
-          data = data.slice(slice.length);
+          // Remove elements from data that were pushed onto slice and markers arrays
+          data = data.slice(slice.length + markers.length);
           value = slice.reduce(function (prev, curr) { return prev + curr.height }, 0) / slice.length;
           color = slice.reduce(function (prev, curr) { return prev + curr.color }, 0) / slice.length;
           ctx.fillStyle = "rgb(" + Math.round(color) + ",0,0)";
@@ -260,11 +262,11 @@ var HistogramContainer;
           if (markers.length) {
             var str = "";
             var id = 1;
-            markers.forEach(function (marker) {
+            markers.forEach(function (markerSample) {
               if (markers.length > 1) {
-                str += (id++) + ": " + marker + " ";
+                str += (id++) + ": " + markerSample.marker.name + " ";
               } else {
-                str = marker;
+                str = markerSample.marker.name;
               }
             });
             var markerDiv = createElement("div", { className: "marker" });
