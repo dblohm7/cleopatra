@@ -1376,6 +1376,18 @@ function calculateHistogramData(requestID, profileID, showMissedSample, options,
 
   function getHeight(step) {
     return step.extraInfo.height || step.frames.length;
+  } 
+
+  function getMarker(markerField) {
+    if (!Array.isArray(markerField.extraInfo.marker)) {
+      return step.extraInfo.marker;
+    }
+  }
+
+  function getMarkers(markerField) {
+    if (Array.isArray(markerField.extraInfo.marker)) {
+      return step.extraInfo.marker;
+    }
   }
 
   var profile = gProfiles[profileID];
@@ -1392,7 +1404,10 @@ function calculateHistogramData(requestID, profileID, showMissedSample, options,
         frames: [ step.frames ],
         height: getHeight(step) / (maxHeight / 100),
         time: step.extraInfo.time,
-        marker: step.extraInfo.marker,
+        // marker is defined when step contains v2 markers
+        marker: getMarker(step),
+        // markers is defined when step contains v1 markers
+        markers: getMarkers(step),
         color: getStepColor(step)
       };
     });

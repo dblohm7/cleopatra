@@ -220,6 +220,7 @@ var HistogramContainer;
       var slice, markers, value, color;
       var lastTimeLabel = null;
       var barWidth = 5;
+      var newMarkerFormat = false;
 
       // Don't show gaps smaller then 1ms
       if (step < 1) {
@@ -236,17 +237,31 @@ var HistogramContainer;
             break;
           }
 
-          // Separate marker samples out from regular samples
-          if (datum.marker) {
-            markers.push(datum);
-          } else {
+          if (datum.markers) {
+            // Old marker format
+            if (datum.markers.length) {
+              markers.push(datum.markers);
+            }
             slice.push(datum);
+          } else {
+            // New marker format -- each marker is itself a sample
+            newMarkerFormat = true;
+            if (datum.marker) {
+              markers.push(datum);
+            } else {
+              slice.push(datum);
+            }
           }
         }
 
         if (slice.length !== 0) {
-          // Remove elements from data that were pushed onto slice and markers arrays
-          data = data.slice(slice.length + markers.length);
+          if (newMarkerFormat) {
+            // Remove elements from data that were pushed onto slice and markers arrays
+            data = data.slice(slice.length + markers.length);
+          } else {
+            data = data.slice(slice.length);
+          }
+
           value = slice.reduce(function (prev, curr) { return prev + curr.height }, 0) / slice.length;
           color = slice.reduce(function (prev, curr) { return prev + curr.color }, 0) / slice.length;
           ctx.fillStyle = "rgb(" + Math.round(color) + ",0,0)";
@@ -262,13 +277,23 @@ var HistogramContainer;
           if (markers.length) {
             var str = "";
             var id = 1;
-            markers.forEach(function (markerSample) {
-              if (markers.length > 1) {
-                str += (id++) + ": " + markerSample.marker.name + " ";
-              } else {
-                str = markerSample.marker.name;
-              }
-            });
+            if (newMarkerFormat) {
+              markers.forEach(function (markerSample) {
+                if (markers.length > 1) {
+                  str += (id++) + ": " + markerSample.marker.name + " ";
+                } else {
+                  str = markerSample.marker.name;
+                }
+              });
+            } else {
+              markers.forEach(function (marker) {
+                if (markers.length > 1) {
+                  str += (id++) + ": " + marker + " ";
+                } else {
+                  str = marker;
+                }
+              });
+            }
             var markerDiv = createElement("div", { className: "marker" });
             markerDiv.textContent = str;
             markerDiv.style.left = x + "px";
