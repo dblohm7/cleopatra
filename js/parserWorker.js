@@ -1378,14 +1378,9 @@ function calculateHistogramData(requestID, profileID, showMissedSample, options,
     return step.extraInfo.height || step.frames.length;
   } 
 
-  function getMarker(markerField) {
-    if (!Array.isArray(markerField.extraInfo.marker)) {
-      return step.extraInfo.marker;
-    }
-  }
-
-  function getMarkers(markerField) {
-    if (Array.isArray(markerField.extraInfo.marker)) {
+  function getMarkers(step, version) {
+    var isArray = Array.isArray(step.extraInfo.marker);
+    if (version == 1 && isArray || version == 2 && !isArray) {
       return step.extraInfo.marker;
     }
   }
@@ -1405,9 +1400,9 @@ function calculateHistogramData(requestID, profileID, showMissedSample, options,
         height: getHeight(step) / (maxHeight / 100),
         time: step.extraInfo.time,
         // marker is defined when step contains v2 markers
-        marker: getMarker(step),
+        marker: getMarkers(step, 2),
         // markers is defined when step contains v1 markers
-        markers: getMarkers(step),
+        markers: getMarkers(step, 1),
         color: getStepColor(step)
       };
     });

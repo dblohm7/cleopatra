@@ -220,7 +220,7 @@ var HistogramContainer;
       var slice, markers, value, color;
       var lastTimeLabel = null;
       var barWidth = 5;
-      var newMarkerFormat = false;
+      var hasSampledMarkers = false;
 
       // Don't show gaps smaller then 1ms
       if (step < 1) {
@@ -237,25 +237,25 @@ var HistogramContainer;
             break;
           }
 
+          if (!datum.marker && !datum.markers) {
+            slice.push(datum);
+            continue;
+          }
           if (datum.markers) {
             // Old marker format
             if (datum.markers.length) {
               markers.push(datum.markers);
             }
             slice.push(datum);
-          } else {
+          } else if(datum.marker) {
             // New marker format -- each marker is itself a sample
-            newMarkerFormat = true;
-            if (datum.marker) {
-              markers.push(datum);
-            } else {
-              slice.push(datum);
-            }
+            hasSampledMarkers = true;
+            markers.push(datum);
           }
         }
 
         if (slice.length !== 0) {
-          if (newMarkerFormat) {
+          if (hasSampledMarkers) {
             // Remove elements from data that were pushed onto slice and markers arrays
             data = data.slice(slice.length + markers.length);
           } else {
@@ -277,7 +277,7 @@ var HistogramContainer;
           if (markers.length) {
             var str = "";
             var id = 1;
-            if (newMarkerFormat) {
+            if (hasSampledMarkers) {
               markers.forEach(function (markerSample) {
                 if (markers.length > 1) {
                   str += (id++) + ": " + markerSample.marker.name + " ";
